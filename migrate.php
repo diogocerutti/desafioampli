@@ -24,7 +24,7 @@ $connTemp = mysqli_connect("localhost", "root", "d123", "0temp")
 // Informações de Inicio da Migração:
 echo "Início da Migração: " . dateNow() . ".\n\n";
 
-
+// Ignorar cabeçalho das tabelas do CSV
 $start_row = 1;
 $start_row2 = 1;
 $start_row3 = 1;
@@ -44,7 +44,7 @@ if (($handle = fopen("./dados_sistema_legado/20210512_agendamentos.csv", "r")) !
     $checkConvenio = mysqli_query($connTemp, $selectConvenio);
     $insertConvenio = "INSERT INTO convenios (nome) VALUES ('$currentConvenio')";
 
-    if ($checkConvenio->num_rows == 0) {
+    if ($checkConvenio->num_rows == 0) { // Verifica se o convênio já está cadastrado
       mysqli_query($connTemp, $insertConvenio);
     } else {
       echo "Convênio já cadastrado: $currentConvenio \n";
@@ -54,7 +54,7 @@ if (($handle = fopen("./dados_sistema_legado/20210512_agendamentos.csv", "r")) !
     $checkProcedimento = mysqli_query($connTemp, $selectProcedimento);
     $insertProcedimento = "INSERT INTO procedimentos (nome) VALUES ('$currentProcedimento')";
 
-    if ($checkProcedimento->num_rows == 0) {
+    if ($checkProcedimento->num_rows == 0) { // Verifica se o procedimento já está cadastrado
       mysqli_query($connTemp, $insertProcedimento);
     } else {
       echo "Procedimento já cadastrado: $currentProcedimento \n";
@@ -64,7 +64,7 @@ if (($handle = fopen("./dados_sistema_legado/20210512_agendamentos.csv", "r")) !
     $checkProfissional = mysqli_query($connTemp, $selectProfissional);
     $insertProfissional = "INSERT INTO profissionais (nome) VALUES ('$currentProfissional')";
 
-    if ($checkProfissional->num_rows == 0) {
+    if ($checkProfissional->num_rows == 0) { // Verifica se o profissional já está cadastrado
       mysqli_query($connTemp, $insertProfissional);
     } else {
       echo "Profissional já cadastrado: $currentProfissional \n";
@@ -84,12 +84,13 @@ if (($handle = fopen("./dados_sistema_legado/20210512_pacientes.csv", "r")) !== 
     } // Ignorar primeira linha
 
     $nome = $data[1];
-    $sexo = 1; // Previne campos nulos
+    $sexo = 1; // Previne campos nulos, padrão masculino
     $nascimento = $data[2];
     $cpf = $data[5];
     $rg = $data[6];
     $nomeConvenio = $data[9];
-
+.
+    // Formata o nascimento
     $nascimentoFormat = substr($nascimento, 6, 9) . "-" . substr($nascimento, 3, 2) . "-" . substr($nascimento, 0, 2);
 
     if ($data[7] === "M") {
@@ -107,7 +108,7 @@ if (($handle = fopen("./dados_sistema_legado/20210512_pacientes.csv", "r")) !== 
 
     $insertPaciente = "INSERT INTO pacientes (nome, sexo, nascimento, cpf, rg, id_convenio) VALUES ('$nome', '$sexo', '$nascimentoFormat', '$cpf', '$rg', '$idConvenio[0]')";
 
-    if ($checkPaciente->num_rows == 0) {
+    if ($checkPaciente->num_rows == 0) { // Verifica se o paciente já está cadastrado
       mysqli_query($connTemp, $insertPaciente);
     } else {
       echo "Paciente já cadastrado: $nome \n";
@@ -118,7 +119,7 @@ if (($handle = fopen("./dados_sistema_legado/20210512_pacientes.csv", "r")) !== 
   fclose($handle);
 }
 
-$counter = 1;
+$counter = 1; // Variável para identificar a linha atual
 
 if (($handle = fopen("./dados_sistema_legado/20210512_agendamentos.csv", "r")) !== FALSE) {
   while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
@@ -137,6 +138,7 @@ if (($handle = fopen("./dados_sistema_legado/20210512_agendamentos.csv", "r")) !
     $nomeProcedimento = $data[11];
     $observacoes = $data[1];
 
+    // Formatar data
     $dataFormat = substr($dataAgend, 6, 9) . "-" . substr($dataAgend, 3, 2) . "-" . substr($dataAgend, 0, 2);
     $dhInicio = $dataFormat . " " . $horaInicio;
     $dhFim = $dataFormat . " " . $horaFim;
@@ -155,6 +157,7 @@ if (($handle = fopen("./dados_sistema_legado/20210512_agendamentos.csv", "r")) !
 
     $insertAgendamento = "INSERT INTO agendamentos (id_paciente, id_profissional, dh_inicio, dh_fim, id_convenio, id_procedimento, observacoes) VALUES ('$dadosPaciente[0]', '$dadosProfissional[0]', '$dhInicio', '$dhFim', '$dadosPaciente[1]', '$dadosProcedimento[0]', '$observacoes')";
 
+    // Verifica se não existem campos nulos
     if ($checkPaciente->num_rows > 0 && $checkProfissional->num_rows > 0 && $checkProcedimento->num_rows > 0) {
       mysqli_query($connTemp, $insertAgendamento);
     } else {
@@ -165,6 +168,9 @@ if (($handle = fopen("./dados_sistema_legado/20210512_agendamentos.csv", "r")) !
 
   fclose($handle);
 }
+
+
+// Parte de dump do banco temporário para o banco medicalchallenge
 
 $selectConvenios = "SELECT nome, descricao from convenios";
 $selectProcedimentos = "SELECT nome, descricao from procedimentos";
@@ -231,6 +237,9 @@ for ($i = 0; $i < count($profissionais); $i++) {
   mysqli_query($connMedical, $insertProfissionais);
 
 }
+
+
+// NÃO CONSEGUI:
 
 /*
 for ($i = 0; $i < count($pacientes); $i++) {
